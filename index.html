@@ -1,0 +1,118 @@
+<!-- FILEPATH: index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Compte à rebours</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100vh;
+      margin: 4px;
+  }
+  </style>
+</head>
+<body>
+	<form id="question-form">
+		<label for="question-textarea">Questions :</label>
+		<textarea id="question-textarea"></textarea>
+		<br>
+		<label for="time-select">Créneau horaire :</label>
+		<select id="time-select">
+			<option value="8:01">8h01</option>
+			<option value="10:11">10h11</option>
+			<option value="14:01">14h01</option>
+			<option value="16:11">16h11</option>
+			<option value="now">Maintenant (avec 30 secondes délai)</option>
+		</select>
+		<button id="button-time">Personnaliser l'heure</button>
+		<br>
+		<label for="duration-select">Durée :</label>
+		<input type="number" id="duration-select" value="10" min="1" max="60"> minutes
+		<br>
+		<button type="submit">Valider</button>
+	</form>
+	<div id="countdown"></div>
+	<div id="questions-display" style="white-space-collapse: break-spaces;"></div>
+	<button id="button-show" style="display: none;">Ré-afficher les questions</button>
+	<script>
+		const form = document.getElementById('question-form');
+		const countdownDiv = document.getElementById('countdown');
+    const questionsDiv = document.getElementById('questions-display');
+		const buttonTime = document.getElementById('button-time');
+		const buttonShow = document.getElementById('button-show');
+
+		buttonTime.addEventListener('click', (event) => {
+			event.preventDefault();
+			const timeSelect = document.getElementById('time-select');
+			const time = prompt('Entrez une heure au format HH:MM', timeSelect.value.padStart(5, '0'));
+			if (time) {
+				timeSelect.appendChild(new Option(time, time));
+				timeSelect.value = time;
+			}
+		});
+
+		buttonShow.addEventListener('click', (event) => {
+			event.preventDefault();
+			questionsDiv.style.display = 'block';
+			buttonShow.style.display = 'none';
+			countdownDiv.style.display = 'none';
+		});
+
+		function timeFieldToDate(time) {
+			if (time === 'now') {
+				const now = new Date();
+				now.setSeconds(now.getSeconds() + 30);
+				return now;
+			} else {
+				const [hours, minutes] = time.split(':').map((value) => parseInt(value));
+				const endTime = new Date();
+
+				endTime.setHours(hours);
+				endTime.setMinutes(minutes);
+				endTime.setSeconds(0);
+
+				return endTime;
+			}
+		}
+
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+      const form = document.getElementById('question-form');
+			const questions = document.getElementById('question-textarea').value;
+			const time = document.getElementById('time-select').value;
+      const duration = parseInt(document.getElementById('duration-select').value);
+
+			const endTime = timeFieldToDate(time);
+
+			form.remove();
+
+      let step = "display";
+			const countdownInterval = setInterval(() => {
+				const now = new Date();
+				const timeLeft = endTime - now;
+				if (timeLeft <= 0) {
+          if (step === "display") {
+            step = "end"
+            questionsDiv.textContent = questions;
+            endTime.setMinutes(endTime.getMinutes() + duration);
+          } else {
+            clearInterval(countdownInterval);
+						console.log("questionsDiv.style.display = 'none'");
+						questionsDiv.style.display = 'none';
+            countdownDiv.textContent = "Fin du temps imparti. Rassemblez les copies.";
+						buttonShow.style.display = 'block';
+          }
+				} else {
+					const minutesLeft = Math.floor(timeLeft / 1000 / 60);
+					const secondsLeft = Math.floor(timeLeft / 1000) % 60;
+					countdownDiv.textContent = `Temps restant : ${minutesLeft} min ${secondsLeft.toString().padStart(2, '0')} s`;
+				}
+			}, 1000);
+		});
+	</script>
+</body>
+</html>
