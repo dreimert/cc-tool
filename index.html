@@ -13,6 +13,9 @@
       height: 100vh;
       margin: 4px;
   }
+    body.evaluation {
+      justify-content: flex-start;
+    }
   </style>
 </head>
 <body>
@@ -62,6 +65,29 @@
 			countdownDiv.style.display = 'none';
 		});
 
+		// Sélectionne automatiquement l'heure de l'évaluation selon l'heure courante :
+		// le prochain créneau s'il commence dans moins de 20 minutes, sinon la minute suivante.
+		function selectDefaultTime() {
+			const timeSelect = document.getElementById('time-select');
+			const now = new Date();
+			const maxDelay = 20 * 60 * 1000;
+
+			for (const option of timeSelect.options) {
+				if (option.value === 'now') continue;
+				const slot = timeFieldToDate(option.value);
+				if (slot > now && slot - now <= maxDelay) {
+					timeSelect.value = option.value;
+					return;
+				}
+			}
+
+			const next = new Date(now.getTime() + 60 * 1000);
+			const value = `${next.getHours()}:${next.getMinutes().toString().padStart(2, '0')}`;
+			const label = value.replace(':', 'h');
+			timeSelect.appendChild(new Option(label, value));
+			timeSelect.value = value;
+		}
+
 		function timeFieldToDate(time) {
 			if (time === 'now') {
 				const now = new Date();
@@ -89,6 +115,7 @@
 			const endTime = timeFieldToDate(time);
 
 			form.remove();
+			document.body.classList.add('evaluation');
 
       let step = "display";
 			const countdownInterval = setInterval(() => {
@@ -113,6 +140,7 @@
 				}
 			}, 1000);
 		});
+		selectDefaultTime();
 	</script>
 </body>
 </html>
